@@ -2,5 +2,5 @@
 dockerPipeline(
     appName: 'user',
     devHostPort: '8005',
-    contPortL '8232'
+    contPort: '8232'
 )
