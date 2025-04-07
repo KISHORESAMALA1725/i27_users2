@@ -19,7 +19,7 @@ pipeline {
     }
 
     environment {
-        APPLICATION_NAME = 'user'
+        APPLICATION_NAME = "${pipelineParams.appName}"
         POM_VERSION = readMavenPom().getVersion()
         POM_PACKAGING = readMavenPom().getPackaging()
         DOCKER_HUB = 'docker.io/kishoresamala84'
@@ -35,7 +35,7 @@ pipeline {
             }
             steps {
                 script {
-                    buildApp()
+                    docker.buildApp("${env.APPLICATION_NAME}")
                 }
             }
         }
@@ -84,12 +84,12 @@ pipeline {
         stage('***** Deploy to DEV-ENV *****') {
             when {
                 expression {
-                    params.deploytodev == 'yes'
+                    params.deployto'dev' == 'yes'
                 }
             }
             steps {
                 script {
-                    deployToDocker('dev', '5001', '8761')
+                    deployToDocker('dev', '8005', '8232')
                 }
             }
         }
@@ -102,7 +102,7 @@ pipeline {
             }
             steps {
                 script {
-                    deployToDocker('test', '5002', '8761')
+                    deployToDocker('test', '8006', '8232')
                 }
             }
         }
@@ -116,7 +116,7 @@ pipeline {
             steps {
                 script {
                     imageValidation()
-                    deployToDocker('stage', '5003', '8761')
+                    deployToDocker('stage', '8007', '8232')
                 }
             }
         }
@@ -129,7 +129,7 @@ pipeline {
             }
             steps {
                 script {
-                    deployToDocker('prod', '5004', '8761')
+                    deployToDocker('prod', '8008', '8232')
                 }
             }
         }
@@ -169,12 +169,12 @@ def deployToDocker(envDeploy, hostPort, contPort) {
     withCredentials([usernamePassword(credentialsId: 'john_docker_vm_passwd', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
         script {
             try {
-                sh "sshpass -p '$PASSWORD' ssh -o StrictHostKeyChecking=no '$USERNAME'@dev_ip \"docker stop ${env.APPLICATION_NAME}-dev\""
-                sh "sshpass -p '$PASSWORD' ssh -o StrictHostKeyChecking=no '$USERNAME'@dev_ip \"docker rm ${env.APPLICATION_NAME}-dev\""
+                sh "sshpass -p '$PASSWORD' ssh -o StrictHostKeyChecking=no '$USERNAME'@$dev_ip \"docker stop ${env.APPLICATION_NAME}-'$envDeploy'\""
+                sh "sshpass -p '$PASSWORD' ssh -o StrictHostKeyChecking=no '$USERNAME'@$dev_ip \"docker rm ${env.APPLICATION_NAME}-'$envDeploy'\""
             } catch (err) {
                 echo "Error Caught: $err"
             }
-            sh "sshpass -p '$PASSWORD' ssh -o StrictHostKeyChecking=no '$USERNAME'@dev_ip \"docker container run -dit -p $hostPort:$contPort --name ${env.APPLICATION_NAME}-dev ${env.DOCKER_HUB}/${env.APPLICATION_NAME}:${GIT_COMMIT}\""
+            sh "sshpass -p '$PASSWORD' ssh -o StrictHostKeyChecking=no '$USERNAME'@$dev_ip \"docker container run -dit -p $hostPort:$contPort --name ${env.APPLICATION_NAME}-'$envDeploy' ${env.DOCKER_HUB}/${env.APPLICATION_NAME}:${GIT_COMMIT}\""
         }
     }
 }
