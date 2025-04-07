@@ -84,7 +84,7 @@ pipeline {
         stage('***** Deploy to DEV-ENV *****') {
             when {
                 expression {
-                    params.deployto'dev' == 'yes'
+                    params.deploytodev == 'yes'
                 }
             }
             steps {
