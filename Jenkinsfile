@@ -1,7 +1,4 @@
 @Library("com.i27academy.slb@main") _
-dockerPipeline (
+K8sPipeline (
     appName: 'user',
-    devHostPort: '8001',
-    contPort: '8232'
 )
-
